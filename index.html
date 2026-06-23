@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The True Cost of a Hire — Culture of One</title>
+<title>When a Hire Stops Paying for Itself — Culture of One</title>
 <style>
   :root{
     --bg:#ffffff; --surface:#f4f3ee; --ink:#1d1c1a; --muted:#6b6a64; --hint:#9a988f;
-    --gold:#C8A064; --line:rgba(0,0,0,.10);
+    --gold:#C8A064; --red:#9a2f24; --line:rgba(0,0,0,.10);
     --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   }
   *{box-sizing:border-box}
@@ -23,19 +23,18 @@
   .lever{display:flex;align-items:center;gap:14px;margin:0 0 16px;}
   .lever label{font-size:14px;color:var(--muted);flex:1;}
   .lever input[type=range]{flex:1.6;accent-color:var(--gold);height:4px;}
-  .lever .val{font-size:15px;font-weight:600;min-width:120px;text-align:right;font-family:var(--mono);}
+  .lever .val{font-size:15px;font-weight:600;min-width:138px;text-align:right;font-family:var(--mono);}
   .hero{margin:24px 0 4px;padding:20px;border-radius:14px;background:var(--ink);color:#fff;text-align:center;}
   .hero .lab{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);margin:0 0 6px;}
-  .hero .big{font-size:38px;font-weight:600;margin:0;font-family:var(--mono);letter-spacing:-.01em;}
-  .hero .cap{font-size:13px;margin:8px 0 0;opacity:.7;}
+  .hero .big{font-size:36px;font-weight:600;margin:0;font-family:var(--mono);letter-spacing:-.01em;}
+  .hero .cap{font-size:13px;margin:8px 0 0;opacity:.75;}
   .chart{margin:18px 0 0;}
   .chart svg{width:100%;height:auto;display:block;}
   table{width:100%;border-collapse:collapse;margin:18px 0 0;font-size:14px;}
   th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);}
   th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600;}
   td.n{text-align:right;font-family:var(--mono);}
-  tr.jump td{font-weight:600;}
-  tfoot td{border-top:2px solid var(--ink);border-bottom:none;font-weight:600;}
+  td.over{color:var(--red);font-weight:600;}
   .summary{font-size:15px;line-height:1.6;margin:18px 0 0;padding:14px 16px;border-radius:12px;background:var(--surface);}
   .summary b{font-weight:600;}
   .explain{margin:28px 0 0;border-top:1px solid var(--line);padding-top:24px;}
@@ -50,10 +49,10 @@
 <body>
 <div class="wrap">
 
-  <h1>The true cost of a hire</h1>
-  <p class="sub">Nobody costs a clinician as this year's salary. Hire one now and you sign on to an escalating seven-year cost: they climb the award bands as they gain experience, and the new rates phase in underneath them. Here is the whole curve, and the number at the end.</p>
+  <h1>When does a hire stop paying for itself?</h1>
+  <p class="sub">A clinician's wage climbs every year — they move up the award bands and the new rates phase in. To hold your margin, their billings have to climb just as fast. This shows the billings they need each year, and the year that number outruns what a physio can realistically generate.</p>
 
-  <div class="pick"><label>Who you're hiring (their exact year in the profession)</label>
+  <div class="pick"><label>Who you're costing (their exact year in the profession)</label>
     <select id="start">
       <option value="1" selected>A new graduate (1st year)</option>
       <option value="2">A 2nd-year physio</option>
@@ -64,8 +63,10 @@
       <option value="7">A 7th-year+ physio</option>
     </select>
   </div>
+  <div class="lever"><label>You pay them this share of their billings <span style="color:var(--hint)">(relative commission)</span></label><input type="range" id="share" min="30" max="60" step="1" value="45"><span class="val" id="share-v"></span></div>
+  <div class="lever"><label>What a physio can realistically bill (full tilt)</label><input type="range" id="ceil" min="180000" max="400000" step="10000" value="280000"><span class="val" id="ceil-v"></span></div>
   <div class="lever"><label>Hours per week</label><input type="range" id="hours" min="8" max="38" step="1" value="38"><span class="val" id="hours-v"></span></div>
-  <div class="lever"><label>Assumed annual wage review</label><input type="range" id="infl" min="0" max="8" step="0.25" value="4"><span class="val" id="infl-v"></span></div>
+  <div class="lever"><label>Assumed annual wage review</label><input type="range" id="infl" min="0" max="8" step="0.25" value="3"><span class="val" id="infl-v"></span></div>
 
   <div class="hero">
     <p class="lab" id="hero-lab"></p>
@@ -76,29 +77,28 @@
   <div class="chart" id="chart"></div>
 
   <table>
-    <thead><tr><th>Year</th><th>Stage of their career</th><th class="n">Cost (all-in)</th></tr></thead>
+    <thead><tr><th>Year</th><th>Career stage</th><th class="n">Wage cost</th><th class="n">Billings needed</th></tr></thead>
     <tbody id="rows"></tbody>
-    <tfoot><tr><td colspan="2">Total, if retained through 2032</td><td class="n" id="total"></td></tr></tfoot>
   </table>
 
   <div class="summary" id="summary"></div>
 
   <div class="explain">
     <div class="row">
-      <p class="lead">Two forces stack, every year</p>
-      <p>The clinician moves up the experience bands (1st year, 2nd–3rd, 4th–6th, 7th year+), and the award rates phase in from 1 October 2026 to 2030. The cost rises faster than either on its own, and it jumps at the band crossings — around year 4 and year 7.</p>
+      <p class="lead">The wage climbs on autopilot. The billings don't.</p>
+      <p>Every year the clinician moves up the experience bands and the award rates phase in, so the wage rises whether or not anything else changes. To keep paying them the same share of their billings — your margin — they have to generate proportionally more. The billings-needed line is that target, rising in lockstep with the wage.</p>
     </div>
     <div class="row">
-      <p class="lead">This is the commitment no one prices</p>
-      <p>An owner sees a hire as a salary this year. It is really a forward cost that escalates on a schedule you do not control. The total assumes you retain them through 2032 — they may leave sooner, but every replacement steps onto the same rising curve. The shape doesn't go away.</p>
+      <p class="lead">The problem is the year the target outruns reality</p>
+      <p>There's a ceiling on what one physio can bill in a week of work. When the billings they'd need to hold your margin climbs past that ceiling, the maths stops working — you either accept a thinner margin or you can't afford them at that share. That crossing year is when the squeeze actually arrives.</p>
     </div>
     <div class="row">
       <p class="lead">What is locked, and what is your call</p>
-      <p>The base is the published 1 October 2026 rate with the confirmed 4.75% review applied. The 2028–2030 steps are interpolated between the two figures the Commission has published; anything past 4.75% is your inflation assumption. Figures are base wage plus 12% super — leave loading, penalties and bonus sit on top.</p>
+      <p>The wage base is the published 1 October 2026 rate with the confirmed 4.75% review applied; 2028–2030 steps are interpolated between the Commission's two published figures; anything past 4.75% is your inflation assumption. Wage figures are base plus 12% super. Your share, the ceiling and inflation are yours to set.</p>
     </div>
   </div>
 
-  <p class="foot">You don't hire a salary. You sign a seven-year cost curve. — Culture of One</p>
+  <p class="foot">A clinician's wage is fixed by the award. Their billings are your problem to solve. — Culture of One</p>
 
 </div>
 
@@ -107,7 +107,6 @@
   var aud0=new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD',maximumFractionDigits:0});
   var g=function(id){return document.getElementById(id);};
 
-  // AQF 7 structural rates, 2025 dollars, weekly full-time, stages 1-5. Same engine as the other tools.
   var RATES={
     '1st':[1249.50,1312.10,1374.70,1437.30,1499.90],
     '2-3':[1345.10,1403.65,1462.20,1520.75,1579.30],
@@ -116,69 +115,81 @@
   };
   var FT=38, SUPER=0.12, AWR2026=0.0475, Y0=2026, Y1=2032;
   var BANDNAME={'1st':'1st year','2-3':'2nd–3rd year','4-6':'4th–6th year','7+':'7th year+'};
-  var BANDCOL={'1st':'#E3CFA6','2-3':'#C8A064','4-6':'#A07C3E','7+':'#5C4A28'};
   function bandFor(e){ return e<=1?'1st': e<=3?'2-3': e<=6?'4-6':'7+'; }
 
-  function series(start, hours, infl){
+  function series(start, hours, infl, share){
     var out=[];
     for(var Y=Y0; Y<=Y1; Y++){
       var exp=start+(Y-Y0), band=bandFor(exp);
       var sidx=Math.max(0,Math.min(Y-2027,4)), iexp=Math.max(0,Y-2027);
       var wk=RATES[band][sidx]*(1+AWR2026)*Math.pow(1+infl,iexp);
-      out.push({year:Y, exp:exp, band:band, allin:wk/FT*hours*52*(1+SUPER)});
+      var wage=wk/FT*hours*52*(1+SUPER);
+      out.push({year:Y, exp:exp, band:band, wage:wage, req:wage/share});
     }
     return out;
   }
 
-  function chart(s){
+  function chart(s, ceil){
     var W=640,H=250,padT=26,padB=30,padX=8;
     var plotH=H-padT-padB, n=s.length, slot=(W-padX*2)/n, bw=slot*0.6;
-    var max=Math.max.apply(null,s.map(function(d){return d.allin;}));
+    var max=Math.max(ceil*1.05, Math.max.apply(null,s.map(function(d){return d.req;})));
+    var cy=padT+(plotH-ceil/max*plotH);
     var svg='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">';
     s.forEach(function(d,i){
-      var h=d.allin/max*plotH, x=padX+i*slot+(slot-bw)/2, y=padT+(plotH-h);
-      svg+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="3" fill="'+BANDCOL[d.band]+'"/>';
-      svg+='<text x="'+(x+bw/2).toFixed(1)+'" y="'+(y-6).toFixed(1)+'" text-anchor="middle" font-size="11" font-family="ui-monospace,Menlo,monospace" fill="#1d1c1a">'+Math.round(d.allin/1000)+'k</text>';
+      var h=d.req/max*plotH, x=padX+i*slot+(slot-bw)/2, y=padT+(plotH-h);
+      var over=d.req>=ceil;
+      svg+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="3" fill="'+(over?'#9a2f24':'#C8A064')+'"/>';
+      svg+='<text x="'+(x+bw/2).toFixed(1)+'" y="'+(y-6).toFixed(1)+'" text-anchor="middle" font-size="11" font-family="ui-monospace,Menlo,monospace" fill="'+(over?'#9a2f24':'#1d1c1a')+'">'+Math.round(d.req/1000)+'k</text>';
       svg+='<text x="'+(x+bw/2).toFixed(1)+'" y="'+(H-12)+'" text-anchor="middle" font-size="11" fill="#6b6a64">'+d.year+'</text>';
     });
+    svg+='<line x1="'+padX+'" y1="'+cy.toFixed(1)+'" x2="'+(W-padX)+'" y2="'+cy.toFixed(1)+'" stroke="#9a2f24" stroke-width="1.2" stroke-dasharray="5 4"/>';
+    svg+='<text x="'+(W-padX-2)+'" y="'+(cy-5).toFixed(1)+'" text-anchor="end" font-size="10.5" fill="#9a2f24">realistic ceiling '+Math.round(ceil/1000)+'k</text>';
     svg+='</svg>';
     return svg;
   }
 
   function update(){
     var start=+g('start').value, hours=+g('hours').value, infl=(+g('infl').value)/100;
-    var s=series(start,hours,infl);
-    var total=s.reduce(function(a,d){return a+d.allin;},0);
-    var first=s[0].allin, last=s[s.length-1].allin;
+    var share=(+g('share').value)/100, ceil=+g('ceil').value;
+    var s=series(start,hours,infl,share);
+    var tip=s.find(function(d){return d.req>=ceil;});
 
+    g('share-v').textContent=(+g('share').value)+'%  ='+Math.round(100-(+g('share').value))+'% margin';
+    g('ceil-v').textContent=aud0.format(ceil);
     g('hours-v').textContent=hours+' hrs'+(hours===38?' (FT)':'');
     g('infl-v').textContent=(+g('infl').value).toFixed(2)+'% / yr';
 
-    g('hero-lab').textContent='Total cost if retained through 2032';
-    g('hero-big').textContent=aud0.format(Math.round(total));
-    g('hero-cap').textContent='base + 12% super, '+hours+' hrs/week';
+    if(tip){
+      g('hero-lab').textContent='They outgrow what a physio can bill in';
+      g('hero-big').textContent=tip.year;
+      g('hero-cap').textContent='to hold your '+Math.round(100-share*100)+'% margin they’d need to bill '+aud0.format(Math.round(tip.req))+', past the '+aud0.format(ceil)+' ceiling';
+    } else {
+      g('hero-lab').textContent='Stays affordable through 2032';
+      g('hero-big').textContent=aud0.format(Math.round(s[s.length-1].req));
+      g('hero-cap').textContent='the billings they’d need by 2032 to hold your '+Math.round(100-share*100)+'% margin — still under the ceiling';
+    }
 
-    g('chart').innerHTML=chart(s);
+    g('chart').innerHTML=chart(s, ceil);
 
-    var rows='', prevBand=null;
+    var rows='';
     s.forEach(function(d){
-      var jump=prevBand && prevBand!==d.band;
-      rows+='<tr'+(jump?' class="jump"':'')+'><td>'+d.year+'</td><td>'+
-        (d.exp===1?'New graduate':'Year '+(d.exp>=7?'7+':d.exp))+' · '+BANDNAME[d.band]+
-        (jump?' &larr; band jump':'')+'</td><td class="n">'+aud0.format(Math.round(d.allin))+'</td></tr>';
-      prevBand=d.band;
+      var over=d.req>=ceil;
+      rows+='<tr><td>'+d.year+'</td><td>'+(d.exp===1?'New graduate':'Year '+(d.exp>=7?'7+':d.exp))+' &middot; '+BANDNAME[d.band]+
+        '</td><td class="n">'+aud0.format(Math.round(d.wage))+'</td><td class="n'+(over?' over':'')+'">'+aud0.format(Math.round(d.req))+'</td></tr>';
     });
     g('rows').innerHTML=rows;
-    g('total').textContent=aud0.format(Math.round(total));
 
     var startTxt=start===1?'a new graduate':'a year-'+(start>=7?'7+':start)+' physio';
-    g('summary').innerHTML='Hire <b>'+startTxt+'</b> now at '+hours+' hours and, kept on, they cost <b>'+
-      aud0.format(Math.round(first))+'</b> this year and <b>'+aud0.format(Math.round(last))+'</b> by 2032 — '+
-      '<b>'+Math.round((last/first-1)*100)+'% more</b> for the same person. Across the seven years that is <b>'+
-      aud0.format(Math.round(total))+'</b> of wage cost, climbing on a schedule you don\'t set.';
+    if(tip){
+      g('summary').innerHTML='Pay <b>'+startTxt+'</b> <b>'+Math.round(share*100)+'%</b> of their billings (a <b>'+Math.round(100-share*100)+'% margin</b>) and the wage rises faster than the chair can. By <b>'+
+        tip.year+'</b> they’d need to bill <b>'+aud0.format(Math.round(tip.req))+'</b> to hold that margin — past what a physio realistically generates. From there you either drop your margin or you can’t carry them at that rate.';
+    } else {
+      g('summary').innerHTML='Pay <b>'+startTxt+'</b> <b>'+Math.round(share*100)+'%</b> of their billings (a <b>'+Math.round(100-share*100)+'% margin</b>) and they stay affordable through 2032 — they’d need to bill <b>'+
+        aud0.format(Math.round(s[s.length-1].req))+'</b> by then, still under the ceiling. Tighten the margin or drop the billings ceiling and watch the year it tips.';
+    }
   }
 
-  ['start','hours','infl'].forEach(function(id){g(id).addEventListener('input',update);});
+  ['start','share','ceil','hours','infl'].forEach(function(id){g(id).addEventListener('input',update);});
   update();
 })();
 </script>
